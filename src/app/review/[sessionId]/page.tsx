@@ -145,13 +145,19 @@ export default function AssessmentReviewPage() {
   if (loadError && !session) {
     return (
       <AssessmentAppLayout>
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-          <p className="text-sm font-semibold text-red-700">{loadError}</p>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff1eb] text-2xl text-[#ff5a1f] shadow-sm">
+            📄
+          </div>
+          <h2 className="text-xl font-bold text-[#111]">Assessment Session Not Found</h2>
+          <p className="mt-2 max-w-md text-xs sm:text-sm text-[#6b7280]">
+            This session may have expired or was opened on a different browser. Please upload the question paper and answer sheet on the upload portal.
+          </p>
           <Link
             href="/"
-            className="mt-4 text-sm font-medium text-[#ff5a1f] hover:underline"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#2a2a2a] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-[#111] transition shadow-sm"
           >
-            ← Back to Upload Portal
+            ← Go to Upload Portal
           </Link>
         </div>
       </AssessmentAppLayout>
