@@ -1,4 +1,4 @@
-import { MAX_ALLOWED_PAGES } from "./image-processor";
+import { MAX_ALLOWED_PAGES } from "./constants";
 
 export async function convertPdfOrImageToBlobs(file: File): Promise<Blob[]> {
   const fileType = file.type.toLowerCase();

@@ -216,7 +216,7 @@ export async function extractAnswersFromPages(
 
 export async function generateAnswerGrading(
   questions: { number: string; text: string; maxMarks?: number | null }[],
-  answers: { questionNumber: string | null; transcribedText: string }[]
+  answers: { questionNumber?: string | null; transcribedText: string }[]
 ) {
   const model = getStructuredModel(gradesResponseSchema);
   const prompt = buildGradingPrompt(questions, answers);

@@ -4,7 +4,7 @@ import { normalizeQuestionNumber } from "@/lib/utils";
 export function mapAnswersToQuestions(
   questions: QuestionPaperItem[],
   extractedAnswers: {
-    questionNumber: string | null;
+    questionNumber?: string | null;
     transcribedText: string;
     regions: { pageIndex: number; x: number; y: number; w: number; h: number }[];
   }[],
@@ -19,7 +19,7 @@ export function mapAnswersToQuestions(
     return {
       id: `ans-${index + 1}`,
       questionId,
-      questionNumber: item.questionNumber,
+      questionNumber: item.questionNumber ?? null,
       transcribedText: item.transcribedText.trim(),
       regions: item.regions.filter(
         (reg) =>

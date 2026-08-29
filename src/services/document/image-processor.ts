@@ -1,7 +1,7 @@
 import sharp from "sharp";
+import { MAX_ALLOWED_PAGES, MAX_IMAGE_EDGE_PX } from "./constants";
 
-export const MAX_ALLOWED_PAGES = 15;
-export const MAX_IMAGE_EDGE_PX = 2048;
+export { MAX_ALLOWED_PAGES, MAX_IMAGE_EDGE_PX };
 
 export async function processAndNormalizePageImage(
   buffer: Buffer,

@@ -28,7 +28,7 @@ Rules:
 
 export function buildGradingPrompt(
   questions: { number: string; text: string; maxMarks?: number | null }[],
-  answers: { questionNumber: string | null; transcribedText: string }[]
+  answers: { questionNumber?: string | null; transcribedText: string }[]
 ): string {
   return `Grade the student's transcribed answers against the extracted exam questions.
 

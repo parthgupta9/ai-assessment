@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 type Props = {
@@ -28,14 +27,9 @@ export function NavigationSidebar({ collapsed = false }: Props) {
         }`}
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/veda-logo.png"
-            alt="VedaAI"
-            width={36}
-            height={36}
-            className="rounded-lg"
-            priority
-          />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#fdba74] to-[#ff5a1f] text-sm font-bold text-white shadow-sm">
+            V
+          </div>
           {!collapsed ? (
             <span className="text-[17px] font-semibold tracking-tight text-[#111]">
               VedaAI
