@@ -34,7 +34,7 @@ export default function AssessmentReviewPage() {
       if (!sessionId) return;
 
       const cached = await loadAssessmentSessionClientAsync(sessionId);
-      if (cached?.result) {
+      if (cached) {
         if (!isCancelled) {
           setSession(cached);
           setLoadError(null);

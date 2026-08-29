@@ -16,7 +16,7 @@ import {
   buildGradingPrompt,
 } from "./prompt-templates";
 
-const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
 function getGenerativeAIClient(): GoogleGenerativeAI {
   const apiKey = process.env.GEMINI_API_KEY;
