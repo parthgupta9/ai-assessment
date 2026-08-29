@@ -1,7 +1,6 @@
 import {
   GoogleGenerativeAI,
   SchemaType,
-  type GenerativeModel,
   type Part,
   type ResponseSchema,
 } from "@google/generative-ai";
@@ -16,28 +15,25 @@ import {
   buildGradingPrompt,
 } from "./prompt-templates";
 
-const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const CANDIDATE_MODELS = [
+  process.env.GEMINI_MODEL,
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-pro-latest",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-exp",
+].filter(Boolean) as string[];
 
 function getGenerativeAIClient(): GoogleGenerativeAI {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "GEMINI_API_KEY environment variable is required. Please check .env.local or deployment configuration."
+      "GEMINI_API_KEY environment variable is required. Please check .env.local or Vercel Environment Variables."
     );
   }
   return new GoogleGenerativeAI(apiKey);
-}
-
-function getStructuredModel(schema: ResponseSchema): GenerativeModel {
-  const ai = getGenerativeAIClient();
-  return ai.getGenerativeModel({
-    model: GEMINI_MODEL_NAME,
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    },
-  });
 }
 
 function convertPagesToParts(
@@ -69,25 +65,55 @@ function parseJsonResponse(rawText: string): unknown {
 }
 
 async function requestStructuredJson<T>(
-  model: GenerativeModel,
+  schema: ResponseSchema,
   parts: Part[],
   validator: (data: unknown) => T
 ): Promise<T> {
+  const ai = getGenerativeAIClient();
+  const modelsToTry = [...new Set(CANDIDATE_MODELS)];
+
   let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
+
+  for (const modelName of modelsToTry) {
     try {
-      const response = await model.generateContent({
-        contents: [{ role: "user", parts }],
+      const model = ai.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseSchema: schema,
+        },
       });
-      const text = response.response.text();
-      return validator(parseJsonResponse(text));
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const response = await model.generateContent({
+            contents: [{ role: "user", parts }],
+          });
+          const text = response.response.text();
+          return validator(parseJsonResponse(text));
+        } catch (err) {
+          lastError = err;
+          const errMsg = err instanceof Error ? err.message : String(err);
+          // If model is not supported/not found on this API endpoint, try next candidate
+          if (
+            errMsg.includes("404") ||
+            errMsg.includes("not found") ||
+            errMsg.includes("unsupported") ||
+            errMsg.includes("is not supported")
+          ) {
+            break;
+          }
+        }
+      }
     } catch (err) {
       lastError = err;
     }
   }
+
   throw lastError instanceof Error
     ? lastError
-    : new Error("Gemini AI API execution failed after retries.");
+    : new Error("Gemini AI API execution failed after trying candidate models.");
 }
 
 // Response Schemas for Gemini Structured JSON Output
@@ -177,13 +203,14 @@ const gradesResponseSchema: ResponseSchema = {
 export async function extractQuestionsFromPages(
   pages: { base64: string; mimeType: string }[]
 ) {
-  const model = getStructuredModel(questionsResponseSchema);
   const parts = [
     { text: QUESTION_EXTRACTION_PROMPT },
     ...convertPagesToParts(pages, "Question Paper"),
   ];
-  const res = await requestStructuredJson(model, parts, (data) =>
-    GeminiQuestionsResponseSchema.parse(data)
+  const res = await requestStructuredJson(
+    questionsResponseSchema,
+    parts,
+    (data) => GeminiQuestionsResponseSchema.parse(data)
   );
   return res.questions;
 }
@@ -192,14 +219,15 @@ export async function extractAnswersFromPages(
   pages: { base64: string; mimeType: string }[],
   questionNumbers: string[]
 ) {
-  const model = getStructuredModel(answersResponseSchema);
   const prompt = buildAnswerExtractionPrompt(questionNumbers);
   const parts = [
     { text: prompt },
     ...convertPagesToParts(pages, "Answer Sheet"),
   ];
-  const res = await requestStructuredJson(model, parts, (data) =>
-    GeminiAnswersResponseSchema.parse(data)
+  const res = await requestStructuredJson(
+    answersResponseSchema,
+    parts,
+    (data) => GeminiAnswersResponseSchema.parse(data)
   );
 
   return res.answers.map((ans) => ({
@@ -218,11 +246,12 @@ export async function generateAnswerGrading(
   questions: { number: string; text: string; maxMarks?: number | null }[],
   answers: { questionNumber?: string | null; transcribedText: string }[]
 ) {
-  const model = getStructuredModel(gradesResponseSchema);
   const prompt = buildGradingPrompt(questions, answers);
   const parts = [{ text: prompt }];
-  return await requestStructuredJson(model, parts, (data) =>
-    GeminiGradesResponseSchema.parse(data)
+  return await requestStructuredJson(
+    gradesResponseSchema,
+    parts,
+    (data) => GeminiGradesResponseSchema.parse(data)
   );
 }
 
@@ -232,5 +261,5 @@ function clampNormalized(val: number): number {
 }
 
 export function getCurrentModelName(): string {
-  return GEMINI_MODEL_NAME;
+  return CANDIDATE_MODELS[0] || "gemini-2.0-flash";
 }
