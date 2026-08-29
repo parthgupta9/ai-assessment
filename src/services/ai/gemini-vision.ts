@@ -104,10 +104,13 @@ function convertPagesToParts(
   const parts: Part[] = [];
   pages.forEach((page, idx) => {
     parts.push({ text: `${label} Page ${idx + 1} (pageIndex ${idx}):` });
+    const cleanBase64 = page.base64
+      .replace(/^data:[^;]+;base64,/, "")
+      .replace(/\s+/g, "");
     parts.push({
       inlineData: {
-        data: page.base64,
-        mimeType: page.mimeType,
+        data: cleanBase64,
+        mimeType: page.mimeType || "image/jpeg",
       },
     });
   });
