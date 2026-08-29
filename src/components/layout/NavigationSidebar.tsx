@@ -41,15 +41,15 @@ export function NavigationSidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${collapsed ? "md:w-[76px] md:p-3" : "w-[260px] p-5"}`}
       >
+        {/* Top Header */}
         <div
-          className={`mb-10 flex items-center  ${
+          className={`mb-6 flex items-center ${
             collapsed ? "md:justify-center" : "justify-between gap-2"
           }`}
         >
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#111] shadow-sm font-black text-lg">
               <Image src="/1.png" alt="VedaAI Logo" width={20} height={20} />
-              
             </div>
             {!collapsed || mobileOpen ? (
               <span className="text-[19px] font-extrabold tracking-tight text-[#111]">
@@ -58,23 +58,37 @@ export function NavigationSidebar({
             ) : null}
           </Link>
 
+          {/* Desktop Top Collapse Toggle: Only visible when expanded */}
+          {!collapsed ? (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="hidden rounded-xl p-2 text-[#6b7280] hover:bg-[#f5f5f5] hover:text-[#111] transition md:flex"
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+            >
+              <SidebarToggleIcon />
+            </button>
+          ) : null}
+
+          {/* Mobile Close Button */}
           <button
             type="button"
-            onClick={onToggleCollapse}
-            className="hidden rounded-xl p-2 text-[#6b7280] hover:bg-[#f5f5f5] hover:text-[#111] transition md:flex"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={onCloseMobile}
+            className="rounded-xl p-2 text-[#6b7280] hover:bg-[#f5f5f5] hover:text-[#111] md:hidden"
+            aria-label="Close menu"
           >
-            <SidebarToggleIcon />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
-
-       
         </div>
 
+        {/* AI Teacher's Toolkit Button */}
         {!collapsed || mobileOpen ? (
           <button
             type="button"
-            className="mb-10 pt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#2a2a2a] px-2 py-2.5 text-sm font-semibold text-white shadow-[0_0_0_2px_rgba(255,90,31,0.3)] hover:bg-[#111] transition"
+            className="mb-8 flex w-full items-center justify-center gap-2 rounded-full bg-[#2a2a2a] px-3 py-2.5 text-xs font-semibold text-white shadow-[0_0_0_2px_rgba(255,90,31,0.3)] hover:bg-[#111] transition"
           >
             <SparkleIcon className="text-[#ff8f66]" />
             AI Teacher&apos;s Toolkit
@@ -82,15 +96,15 @@ export function NavigationSidebar({
         ) : (
           <button
             type="button"
-            onClick={onToggleCollapse}
-            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#2a2a2a] text-[#ff8f66] shadow-[0_0_0_2px_rgba(255,90,31,0.35)] hover:bg-[#111] transition "
+            className="mx-auto mb-6 flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-[#ff8f66] shadow-[0_0_0_2px_rgba(255,90,31,0.35)] hover:bg-[#111] transition"
             aria-label="AI Teacher's Toolkit"
             title="AI Teacher's Toolkit"
           >
-            <SparkleIcon className="text-[#ff8f66]" />
+            <SparkleIcon className="text-[#ff8f66] w-3.5 h-3.5" />
           </button>
         )}
 
+        {/* Navigation Links */}
         <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
           {NAVIGATION_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -98,7 +112,7 @@ export function NavigationSidebar({
             return (
               <div
                 key={item.key}
-                className={`flex cursor-pointer items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-base font-medium transition ${
+                className={`flex cursor-pointer items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
                   active
                     ? "bg-[#f3f4f6] text-[#111] font-semibold"
                     : "text-[#6b7280] hover:bg-[#f9fafb] hover:text-[#111]"
@@ -114,14 +128,14 @@ export function NavigationSidebar({
           })}
         </nav>
 
-        {/* Bottom Profile & School Info Card */}
+        {/* Bottom Area */}
         <div className="mt-auto pt-4">
           {!collapsed || mobileOpen ? (
             <div className="flex flex-col gap-3">
-           
+              {/* School Card */}
               <div className="flex items-center gap-3 rounded-2xl bg-[#f5f5f5] px-3 py-3 border border-[#ebebeb]">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#15803d] shadow-sm border border-emerald-100">
-                 <Image src="/3.png" alt="School Logo" width={32} height={32} />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#15803d] shadow-sm border border-emerald-100 overflow-hidden">
+                  <Image src="/3.png" alt="School Logo" width={32} height={32} />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-xs font-bold text-[#111]">
@@ -134,14 +148,25 @@ export function NavigationSidebar({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-3 pb-1">
+              {/* School Logo Avatar in Collapsed Mode */}
               <div
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f4f6] text-[#15803d] shadow-sm border border-emerald-100 cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#15803d] shadow-sm border border-emerald-100 overflow-hidden cursor-pointer"
                 title="Delhi Public School - Bokaro Steel City"
-                onClick={onToggleCollapse}
               >
-                <span className="text-[10px] font-bold">DPS</span>
+                <Image src="/3.png" alt="School Logo" width={28} height={28} />
               </div>
+
+              {/* Bottom Expand / Collapse Toggle Button in Collapsed Mode */}
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-[#6b7280] hover:bg-[#f5f5f5] hover:text-[#111] transition"
+                aria-label="Expand sidebar"
+                title="Expand sidebar"
+              >
+                <ExpandSidebarIcon />
+              </button>
             </div>
           )}
         </div>
@@ -156,6 +181,16 @@ function SidebarToggleIcon() {
       <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth="1.75" />
       <line x1="9" y1="3" x2="9" y2="21" strokeWidth="1.75" />
       <path d="M14 9l-3 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ExpandSidebarIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+      <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth="1.75" />
+      <line x1="9" y1="3" x2="9" y2="21" strokeWidth="1.75" />
+      <path d="M13 15l3-3-3-3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
