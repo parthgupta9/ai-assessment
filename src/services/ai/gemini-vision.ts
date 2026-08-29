@@ -15,25 +15,86 @@ import {
   buildGradingPrompt,
 } from "./prompt-templates";
 
-const CANDIDATE_MODELS = [
-  process.env.GEMINI_MODEL,
-  "gemini-2.0-flash",
-  "gemini-2.5-flash",
-  "gemini-1.5-flash-latest",
-  "gemini-1.5-pro-latest",
-  "gemini-1.5-flash",
-  "gemini-1.5-pro",
-  "gemini-2.0-flash-exp",
-].filter(Boolean) as string[];
+let cachedDiscoveredModels: string[] | null = null;
 
-function getGenerativeAIClient(): GoogleGenerativeAI {
+function getApiKey(): string {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "GEMINI_API_KEY environment variable is required. Please check .env.local or Vercel Environment Variables."
+      "GEMINI_API_KEY environment variable is missing. Please add it to your Vercel Environment Variables."
     );
   }
-  return new GoogleGenerativeAI(apiKey);
+  return apiKey;
+}
+
+function getGenerativeAIClient(): GoogleGenerativeAI {
+  return new GoogleGenerativeAI(getApiKey());
+}
+
+async function discoverSupportedModels(apiKey: string): Promise<string[]> {
+  if (cachedDiscoveredModels && cachedDiscoveredModels.length > 0) {
+    return cachedDiscoveredModels;
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      { cache: "no-store" }
+    );
+
+    if (res.ok) {
+      const data = (await res.json()) as {
+        models?: { name: string; supportedGenerationMethods?: string[] }[];
+      };
+      if (data.models && Array.isArray(data.models)) {
+        const available = data.models
+          .filter((m) =>
+            m.supportedGenerationMethods?.includes("generateContent")
+          )
+          .map((m) => m.name.replace(/^models\//, ""));
+
+        if (available.length > 0) {
+          // Sort to prioritize fast flash models then pro models
+          available.sort((a, b) => {
+            const getPriority = (name: string) => {
+              if (name.includes("2.0-flash")) return 1;
+              if (name.includes("1.5-flash")) return 2;
+              if (name.includes("flash")) return 3;
+              if (name.includes("pro")) return 4;
+              return 5;
+            };
+            return getPriority(a) - getPriority(b);
+          });
+
+          cachedDiscoveredModels = available;
+          return available;
+        }
+      }
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      if (errData?.error?.message) {
+        throw new Error(errData.error.message);
+      }
+    }
+  } catch (err) {
+    // If specific API error thrown, rethrow so user sees exact reason
+    if (err instanceof Error && err.message.includes("API key")) {
+      throw err;
+    }
+  }
+
+  const fallback = [
+    process.env.GEMINI_MODEL,
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash-exp",
+  ].filter(Boolean) as string[];
+
+  cachedDiscoveredModels = fallback;
+  return fallback;
 }
 
 function convertPagesToParts(
@@ -69,9 +130,16 @@ async function requestStructuredJson<T>(
   parts: Part[],
   validator: (data: unknown) => T
 ): Promise<T> {
+  const apiKey = getApiKey();
   const ai = getGenerativeAIClient();
-  const modelsToTry = [...new Set(CANDIDATE_MODELS)];
+  const availableModels = await discoverSupportedModels(apiKey);
 
+  const prioritizedList = [
+    process.env.GEMINI_MODEL,
+    ...availableModels,
+  ].filter(Boolean) as string[];
+
+  const modelsToTry = [...new Set(prioritizedList)];
   let lastError: unknown;
 
   for (const modelName of modelsToTry) {
@@ -95,7 +163,7 @@ async function requestStructuredJson<T>(
         } catch (err) {
           lastError = err;
           const errMsg = err instanceof Error ? err.message : String(err);
-          // If model is not supported/not found on this API endpoint, try next candidate
+          // If model is not found on endpoint, break to try next available model
           if (
             errMsg.includes("404") ||
             errMsg.includes("not found") ||
@@ -113,7 +181,7 @@ async function requestStructuredJson<T>(
 
   throw lastError instanceof Error
     ? lastError
-    : new Error("Gemini AI API execution failed after trying candidate models.");
+    : new Error("Gemini AI API execution failed. Please verify your GEMINI_API_KEY has Generative Language API access.");
 }
 
 // Response Schemas for Gemini Structured JSON Output
@@ -258,8 +326,4 @@ export async function generateAnswerGrading(
 function clampNormalized(val: number): number {
   if (Number.isNaN(val)) return 0;
   return Math.min(1, Math.max(0, val));
-}
-
-export function getCurrentModelName(): string {
-  return CANDIDATE_MODELS[0] || "gemini-2.0-flash";
 }
