@@ -9,7 +9,7 @@ import { AnswerMappingWorkspace } from "@/components/assessment-flow/AnswerMappi
 import { AssessmentGradingOverview } from "@/components/assessment-flow/AssessmentGradingOverview";
 import { ScoreOverrideModal } from "@/components/assessment/ScoreOverrideModal";
 import {
-  loadAssessmentSessionClient,
+  loadAssessmentSessionClientAsync,
   saveAssessmentSessionClient,
 } from "@/services/storage/client-session";
 import type {
@@ -33,7 +33,7 @@ export default function AssessmentReviewPage() {
     async function loadData() {
       if (!sessionId) return;
 
-      const cached = loadAssessmentSessionClient(sessionId);
+      const cached = await loadAssessmentSessionClientAsync(sessionId);
       if (cached?.result) {
         if (!isCancelled) {
           setSession(cached);

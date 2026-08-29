@@ -89,7 +89,7 @@ export default function AssessmentUploadPage() {
         throw new Error(data.error || "Failed to execute extraction pipeline.");
       }
 
-      saveAssessmentSessionClient(data);
+      await saveAssessmentSessionClient(data);
       router.push(`/review/${data.id}`);
     } catch (err) {
       setErrorMessage(
