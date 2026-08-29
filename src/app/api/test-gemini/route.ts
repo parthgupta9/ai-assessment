@@ -17,7 +17,6 @@ export async function GET() {
   const maskedKey = `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}`;
 
   try {
-    // 1. Check ListModels
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
       { cache: "no-store" }
@@ -38,31 +37,56 @@ export async function GET() {
       .filter((m: { supportedGenerationMethods?: string[] }) =>
         m.supportedGenerationMethods?.includes("generateContent")
       )
-      .map((m: { name: string }) => m.name.replace(/^models\//, ""));
+      .map((m: { name: string }) => m.name.replace(/^models\//, ""))
+      .filter((name: string) => !name.includes("2.5")); // Ignore deprecated 2.5 models
 
-    // 2. Perform a test generation with the first available model
-    const testModelName =
-      availableModels.find((m: string) => m.includes("flash")) ||
-      availableModels[0] ||
-      "gemini-2.0-flash";
+    const candidateModels = [
+      process.env.GEMINI_MODEL,
+      "gemini-3.6-flash",
+      ...availableModels,
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+    ].filter(Boolean) as string[];
 
     const ai = new GoogleGenerativeAI(apiKey);
-    const model = ai.getGenerativeModel({ model: testModelName });
-    const genResult = await model.generateContent("Respond with the single word: OK");
-    const responseText = genResult.response.text();
+    let workingModel: string | null = null;
+    let responseText: string | null = null;
+    let lastError: string | null = null;
+
+    for (const modelName of [...new Set(candidateModels)]) {
+      try {
+        const model = ai.getGenerativeModel({ model: modelName });
+        const genResult = await model.generateContent("Respond with the single word: OK");
+        responseText = genResult.response.text().trim();
+        workingModel = modelName;
+        break;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    if (!workingModel) {
+      return NextResponse.json({
+        status: "error",
+        step: "generateContent test",
+        apiKeyUsed: maskedKey,
+        lastError,
+        availableModels,
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       status: "success",
       apiKeyUsed: maskedKey,
-      selectedModel: testModelName,
-      testResponse: responseText.trim(),
+      selectedWorkingModel: workingModel,
+      testResponse: responseText,
       availableModelsCount: availableModels.length,
       availableModels,
     });
   } catch (err) {
     return NextResponse.json({
       status: "error",
-      step: "generateContent test",
+      step: "API execution",
       apiKeyUsed: maskedKey,
       error: err instanceof Error ? err.message : String(err),
     }, { status: 500 });

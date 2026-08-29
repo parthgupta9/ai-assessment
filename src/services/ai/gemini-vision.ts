@@ -17,6 +17,17 @@ import {
 
 let cachedDiscoveredModels: string[] | null = null;
 
+const DEFAULT_MODELS_PRIORITY = [
+  process.env.GEMINI_MODEL,
+  "gemini-3.6-flash",
+  "gemini-3.6-pro",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-exp",
+].filter(Boolean) as string[];
+
 function getApiKey(): string {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -51,50 +62,37 @@ async function discoverSupportedModels(apiKey: string): Promise<string[]> {
           .filter((m) =>
             m.supportedGenerationMethods?.includes("generateContent")
           )
-          .map((m) => m.name.replace(/^models\//, ""));
+          .map((m) => m.name.replace(/^models\//, ""))
+          .filter((name) => !name.includes("2.5")); // Filter out deprecated 2.5 models
 
         if (available.length > 0) {
-          // Sort to prioritize fast flash models then pro models
+          // Sort to prioritize 3.6-flash > 2.0-flash > 1.5-flash > pro
           available.sort((a, b) => {
             const getPriority = (name: string) => {
-              if (name.includes("2.0-flash")) return 1;
-              if (name.includes("1.5-flash")) return 2;
-              if (name.includes("flash")) return 3;
-              if (name.includes("pro")) return 4;
-              return 5;
+              if (name.includes("3.6-flash")) return 1;
+              if (name.includes("2.0-flash")) return 2;
+              if (name.includes("1.5-flash")) return 3;
+              if (name.includes("3.6-pro")) return 4;
+              if (name.includes("1.5-pro")) return 5;
+              if (name.includes("flash")) return 6;
+              return 7;
             };
             return getPriority(a) - getPriority(b);
           });
 
-          cachedDiscoveredModels = available;
-          return available;
+          // Ensure 3.6-flash is at the beginning if available
+          const result = [...new Set(["gemini-3.6-flash", ...available])];
+          cachedDiscoveredModels = result;
+          return result;
         }
       }
-    } else {
-      const errData = await res.json().catch(() => ({}));
-      if (errData?.error?.message) {
-        throw new Error(errData.error.message);
-      }
     }
-  } catch (err) {
-    // If specific API error thrown, rethrow so user sees exact reason
-    if (err instanceof Error && err.message.includes("API key")) {
-      throw err;
-    }
+  } catch {
+    // Ignore and use default fallback
   }
 
-  const fallback = [
-    process.env.GEMINI_MODEL,
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-    "gemini-2.5-flash",
-    "gemini-2.0-flash-exp",
-  ].filter(Boolean) as string[];
-
-  cachedDiscoveredModels = fallback;
-  return fallback;
+  cachedDiscoveredModels = DEFAULT_MODELS_PRIORITY;
+  return DEFAULT_MODELS_PRIORITY;
 }
 
 function convertPagesToParts(
@@ -139,7 +137,9 @@ async function requestStructuredJson<T>(
 
   const prioritizedList = [
     process.env.GEMINI_MODEL,
+    "gemini-3.6-flash",
     ...availableModels,
+    ...DEFAULT_MODELS_PRIORITY,
   ].filter(Boolean) as string[];
 
   const modelsToTry = [...new Set(prioritizedList)];
@@ -166,11 +166,12 @@ async function requestStructuredJson<T>(
         } catch (err) {
           lastError = err;
           const errMsg = err instanceof Error ? err.message : String(err);
-          // If model is not found on endpoint, break to try next available model
+          // If model is unsupported, deprecated, or not found on this endpoint, try next candidate
           if (
             errMsg.includes("404") ||
             errMsg.includes("not found") ||
             errMsg.includes("unsupported") ||
+            errMsg.includes("no longer available") ||
             errMsg.includes("is not supported")
           ) {
             break;
