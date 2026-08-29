@@ -51,7 +51,6 @@ export function DocumentDropzone({
     if (selectedFile) {
       onFileSelect(selectedFile);
     }
-    // reset input so the same file can be re-selected if cleared
     if (inputRef.current) {
       inputRef.current.value = "";
     }
@@ -67,12 +66,12 @@ export function DocumentDropzone({
           inputRef.current?.click();
         }
       }}
-      className={`relative flex min-h-[220px] flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 text-center transition ${
+      className={`relative flex min-h-[160px] sm:min-h-[190px] w-full flex-col items-center justify-center rounded-[24px] sm:rounded-[28px] border-2 border-dashed p-4 sm:p-6 text-center transition-all ${
         isDragOver
           ? "border-[#ff5a1f] bg-[#fff6f2]"
           : file
-          ? "border-[#22c55e] bg-[#f0fdf4]"
-          : "border-[#e5e5e5] bg-[#fafafa] hover:border-[#ff5a1f]/60 hover:bg-[#fffcfb] cursor-pointer"
+          ? "border-[#e0e0e0] bg-[#fafafa]/80"
+          : "border-[#d8d8d8] bg-white hover:border-[#ff5a1f]/70 hover:bg-[#fffbf9] cursor-pointer"
       }`}
     >
       <input
@@ -91,70 +90,65 @@ export function DocumentDropzone({
           </p>
         </div>
       ) : file ? (
-        <div className="flex w-full flex-col items-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dcfce7] text-[#16a34a]">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <path d="M14 2v6h6M9 15l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+        /* Uploaded State - Matching Screenshot */
+        <div className="relative flex w-full max-w-sm items-center gap-3.5 rounded-2xl border border-[#ececec] bg-white px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+          {/* PDF / Document Badge Icon */}
+          <div className="flex h-10 w-9 shrink-0 flex-col items-center justify-center rounded-lg bg-[#e11d48] text-white shadow-sm">
+            <span className="text-[9px] font-black uppercase tracking-wider">PDF</span>
+            <div className="h-0.5 w-4 rounded-full bg-white/60 mt-0.5" />
           </div>
 
-          <p className="max-w-[220px] truncate text-sm font-semibold text-[#111]" title={file.name}>
-            {file.name}
-          </p>
-
-          <div className="mt-1 flex items-center gap-2 text-xs text-[#6b7280]">
-            <span>{formatBytes(file.size)}</span>
-            {pageCount !== undefined && (
-              <>
-                <span>•</span>
-                <span className="font-semibold text-[#16a34a]">
-                  {pageCount} page{pageCount === 1 ? "" : "s"} ready
-                </span>
-              </>
-            )}
-          </div>
-
-          <div className="mt-4 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                inputRef.current?.click();
-              }}
-              className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#374151] shadow-sm ring-1 ring-[#e5e7eb] hover:bg-[#f9fafb]"
+          {/* File Information */}
+          <div className="min-w-0 flex-1 text-left">
+            <p
+              className="truncate text-xs sm:text-sm font-semibold text-[#111]"
+              title={file.name}
             >
-              Replace
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onFileSelect(null);
-              }}
-              className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-red-600 shadow-sm ring-1 ring-red-200 hover:bg-red-50"
-            >
-              Remove
-            </button>
+              {file.name}
+            </p>
+            <p className="mt-0.5 text-[11px] text-[#6b7280]">
+              {formatBytes(file.size)}
+              {pageCount !== undefined ? ` • ${pageCount} Page${pageCount === 1 ? "" : "s"}` : ""}
+            </p>
           </div>
+
+          {/* Close / Remove Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFileSelect(null);
+            }}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4b5563] text-white hover:bg-[#111] transition"
+            title="Remove file"
+            aria-label="Remove file"
+          >
+            <span className="text-xs font-bold leading-none mb-0.5">✕</span>
+          </button>
         </div>
       ) : (
         <div className="flex flex-col items-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff1eb] text-[#ff5a1f]">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round" />
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#f3f4f6] text-[#374151]">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </div>
 
-          <p className="text-sm font-semibold text-[#111]">
-            <span className="text-[#ff5a1f]">{accentWord}</span> {restLabel}
+          <p className="text-lg font-semibold text-[#111]">
+            Upload <span className="text-[#ff5a1f]">{accentWord} {restLabel}</span>
           </p>
-          <p className="mt-1 text-xs text-[#9ca3af]">
-            Drag & drop or <span className="font-medium text-[#ff5a1f] underline">browse</span>
-          </p>
-          <p className="mt-2 text-[10px] text-[#9ca3af]">
-            PDF, PNG, JPG, WebP (up to 15 pages)
-          </p>
+          <p className="mt-1 text-sm text-[#9ca3af]">Max 10MB</p>
         </div>
       )}
     </div>

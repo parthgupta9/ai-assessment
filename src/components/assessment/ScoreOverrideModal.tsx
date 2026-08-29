@@ -75,7 +75,6 @@ export function ScoreOverrideModal({
 
         {/* Form */}
         <form onSubmit={handleSave} className="space-y-4 p-6">
-          {/* Question Text */}
           <div className="rounded-xl bg-[#fafafa] p-3 text-xs text-[#444] border border-[#f0f0f0]">
             <p className="font-semibold text-[#111] mb-1">Question:</p>
             <p className="leading-relaxed">{question.text}</p>
@@ -100,35 +99,6 @@ export function ScoreOverrideModal({
                 className="w-24 rounded-xl border border-[#d1d5db] px-3 py-2 text-sm font-semibold text-[#111] focus:border-[#ff5a1f] focus:outline-none focus:ring-1 focus:ring-[#ff5a1f]"
               />
               <span className="text-sm font-medium text-[#6b7280]">/ {maxScore}</span>
-            </div>
-          </div>
-
-          {/* Status Selection */}
-          <div>
-            <label className="text-xs font-semibold text-[#374151]">
-              Grading Status
-            </label>
-            <div className="mt-1.5 grid grid-cols-4 gap-2">
-              {(["correct", "partial", "incorrect", "unanswered"] as const).map(
-                (opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setStatus(opt)}
-                    className={`rounded-xl px-2.5 py-1.5 text-xs font-semibold capitalize transition ${
-                      status === opt
-                        ? opt === "correct"
-                          ? "bg-green-600 text-white"
-                          : opt === "partial"
-                          ? "bg-amber-500 text-white"
-                          : "bg-red-600 text-white"
-                        : "bg-[#f3f4f6] text-[#4b5563] hover:bg-[#e5e7eb]"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                )
-              )}
             </div>
           </div>
 

@@ -9,12 +9,6 @@ type Props = {
   onRetry?: () => void;
 };
 
-const STAGES = [
-  { key: "extracting_questions", label: "Question Extraction" },
-  { key: "extracting_answers", label: "Answer Extraction" },
-  { key: "mapping", label: "Answer Mapping" },
-  { key: "grading", label: "Grading & Feedback" },
-] as const;
 
 export function ExtractionProgressIndicator({
   phase = "queued",
@@ -63,33 +57,7 @@ export function ExtractionProgressIndicator({
       </h2>
       <p className="mt-2 text-sm text-[#9ca3af]">{message}</p>
 
-      {/* Pipeline Stages Progress Bar */}
-      <div className="mt-8 flex w-full max-w-md items-center justify-between border-t border-[#f0f0f0] pt-6">
-        {STAGES.map((st, idx) => {
-          const activeIndex = STAGES.findIndex((s) => s.key === phase);
-          const isDone = activeIndex > idx || phase === "done";
-          const isCurrent = st.key === phase;
-
-          return (
-            <div key={st.key} className="flex flex-col items-center gap-1.5">
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition ${
-                  isDone
-                    ? "bg-[#16a34a] text-white"
-                    : isCurrent
-                    ? "bg-[#ff5a1f] text-white animate-pulse"
-                    : "bg-[#f0f0f0] text-[#9ca3af]"
-                }`}
-              >
-                {isDone ? "✓" : idx + 1}
-              </div>
-              <span className="text-[10px] font-medium text-[#6b7280]">
-                {st.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+   
     </div>
   );
 }

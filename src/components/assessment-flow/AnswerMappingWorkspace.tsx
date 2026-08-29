@@ -40,7 +40,6 @@ export function AnswerMappingWorkspace({
         />
       </div>
 
-      {/* Right Column: Answer Sheet Region Highlighter Viewer */}
       <div className="min-h-[520px] lg:h-[calc(100vh-8.5rem)]">
         <AnswerSheetRegionHighlighter
           pages={answerSheetPages}

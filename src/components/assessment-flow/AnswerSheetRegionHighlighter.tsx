@@ -39,7 +39,7 @@ export function AnswerSheetRegionHighlighter({
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#ececec] bg-white">
       {/* Viewer Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ececec] bg-[#2f2f2f] px-4 py-2.5 text-white">
-        <h2 className="text-sm font-semibold">Answer Sheet Region Highlighter</h2>
+        <h2 className="text-sm font-semibold">Answer Sheet</h2>
         <div className="flex items-center gap-3 text-xs">
           {/* Zoom Controls */}
           <div className="flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5">

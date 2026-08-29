@@ -25,7 +25,7 @@ export function AssessmentUploadPortal({
   onSelectAnswerSheet,
 }: Props) {
   return (
-    <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+    <div className="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
       <DocumentDropzone
         accentWord="Question"
         restLabel="Paper"
@@ -35,7 +35,7 @@ export function AssessmentUploadPortal({
         onFileSelect={onSelectQuestionPaper}
       />
       <DocumentDropzone
-        accentWord="Student Answer"
+        accentWord="Answer"
         restLabel="Sheet"
         file={answerSheetFile}
         pageCount={answerSheetPageCount}

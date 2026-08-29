@@ -80,38 +80,20 @@ export function QuestionPaperExtractor({
       {/* Header */}
       <div className="flex flex-col gap-2 border-b border-[#ececec] bg-white px-4 py-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-[#111]">
-            Question Extraction{" "}
-            <span className="font-normal text-[#9ca3af]">
-              ({questions.length} entries preserved)
-            </span>
+          <h2 className="text-base font-semibold text-[#111]">
+            Question Extraction (from question paper)
+            
           </h2>
           <button
             type="button"
             onClick={toggleExpandAll}
-            className="text-xs font-medium text-[#6b7280] hover:text-[#111]"
+            className="text-xs font-medium text-black hover:text-[#111] border-2 rounded-2xl border-[#ececec] px-3 py-1.5 transition"
           >
             {expandedIds.size === questions.length ? "Collapse All" : "Expand All"}
           </button>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap gap-1.5 text-xs">
-          {(["all", "correct", "partial", "incorrect", "unanswered"] as const).map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              onClick={() => setActiveFilter(filter)}
-              className={`rounded-full px-2.5 py-0.5 font-medium capitalize transition ${
-                activeFilter === filter
-                  ? "bg-[#2a2a2a] text-white"
-                  : "bg-[#f0f0f0] text-[#6b7280] hover:bg-[#e4e4e4]"
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
+      
       </div>
 
       {/* Extracted Questions List */}
@@ -196,23 +178,11 @@ export function QuestionPaperExtractor({
 
                   {isOpen && grade ? (
                     <div className="border-t border-[#f0f0f0] px-3 pb-3 pt-2">
-                      <div className="rounded-xl bg-[#fff1eb] px-3 py-2.5">
+                      <div className="rounded-xl bg-[#f9f9f9] px-3 py-2.5">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#ff5a1f]">
-                            AI Evaluation & Feedback
+                          <p className="font-semibold text-[13px] tracking-wide text-black">
+                            AI Feedback
                           </p>
-                          {onEditGrade ? (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditGrade(q.id);
-                              }}
-                              className="text-[11px] font-semibold text-[#6b7280] underline hover:text-[#ff5a1f]"
-                            >
-                              Edit Marks
-                            </button>
-                          ) : null}
                         </div>
                         <p className="mt-1 text-sm leading-relaxed text-[#444]">
                           {grade.feedback}
